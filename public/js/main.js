@@ -313,9 +313,11 @@ async function ensureGame() {
         app.ui.updateAimUi(info);
       },
       onUnlock: () => {
-        if (app.inGame && app.player.state === 'ground' && !app.ui.mapOpen
+        // 指针锁解除 = 按了 Esc → 弹设置菜单（对局中任何时候都可以）
+        if (app.inGame && !app.ui.mapOpen
             && $('inv-panel').classList.contains('hidden')
-            && !(app.inspect && app.inspect.active)) {
+            && !(app.inspect && app.inspect.active)
+            && !(app.player.state === 'dead' || app.player.state === 'idle')) {
           app.ui.onShowSettings && app.ui.onShowSettings();
           app.ui.showResume(true);
         }
@@ -574,8 +576,8 @@ function wireGameKeys() {
       app.ui.toggleMap();
       if (app.ui.mapOpen) document.exitPointerLock && document.exitPointerLock();
     }
-    if (e.code === 'Escape' || e.code === 'KeyX') {
-      // Esc / X 关闭背包或检视
+    if (e.code === 'KeyX') {
+      // X 键：关闭背包 / 检视 / 地图（Esc 由 pointerlockchange 处理弹设置菜单）
       if (!$('inv-panel').classList.contains('hidden')) {
         $('inv-panel').classList.add('hidden');
         if (app.player.state === 'ground') $('gl').requestPointerLock();

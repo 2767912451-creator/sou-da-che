@@ -198,11 +198,12 @@ export class Match {
       si++;
     }
     this.spawnBots();
-    // 缩圈初始化
+    // 缩圈初始化——随机选一个撤离点作为最终圈目的地（保证撤离点在圈内）
+    this.zoneDestination = EXTRACTORS[Math.floor(Math.random() * EXTRACTORS.length)];
     this.zone = { cx: rnd(-140, 140), cz: rnd(-140, 140), r: ZONE_START_R };
     this.phaseIdx = -1;
     this.phaseMode = 'wait';
-    this.phaseTimer = 6;        // 开局 6 秒后第一个阶段开始倒计时
+    this.phaseTimer = 6;
     this.target = { ...this.zone };
     this.matchT = 0;
     for (const p of this.players.values()) {
@@ -836,10 +837,19 @@ export class Match {
         this.phaseIdx++;
         if (this.phaseIdx < ZONE_PHASES.length) {
           const ph = ZONE_PHASES[this.phaseIdx];
-          // 目标圆在当前圆内
           const maxOff = Math.max(0, this.zone.r - ph.r - 30);
-          const ang = rnd(0, Math.PI * 2), off = rnd(0, maxOff);
-          this.target = { cx: this.zone.cx + Math.cos(ang) * off, cz: this.zone.cz + Math.sin(ang) * off, r: ph.r, dps: ph.dps };
+          // 缩圈中心向目的地撤离点偏移（60% 距离 + 少量随机偏转）
+          const dx = this.zoneDestination.x - this.zone.cx;
+          const dz = this.zoneDestination.z - this.zone.cz;
+          const dist = Math.hypot(dx, dz);
+          const bias = Math.min(dist * 0.6, maxOff);
+          const baseAng = dist > 0 ? Math.atan2(dz, dx) : rnd(0, Math.PI * 2);
+          const jitterAng = baseAng + rnd(-0.35, 0.35);
+          this.target = {
+            cx: this.zone.cx + Math.cos(jitterAng) * bias,
+            cz: this.zone.cz + Math.sin(jitterAng) * bias,
+            r: ph.r, dps: ph.dps,
+          };
           this.shrinkFrom = { ...this.zone };
           this.phaseMode = 'shrink';
           this.phaseTimer = ph.shrink;
