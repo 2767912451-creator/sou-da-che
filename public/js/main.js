@@ -328,8 +328,14 @@ async function ensureGame() {
     app.touch = new TouchControls(app.player);
     // 背包使用/丢弃按钮
     app.ui.onUseSlot = (slot) => {
-      if (slot < 0 || !app.net) return;
-      app.net.send({ t: 'use', slot });
+      if (slot < 0 || !app.net || !app.ui.invState) return;
+      const item = app.ui.invState.items[slot];
+      if (!item) return;
+      if (WEAPONS[item.id]) {
+        app.net.send({ t: 'equip', idx: slot });   // 武器 → 切换装备
+      } else {
+        app.net.send({ t: 'use', slot });           // 其他 → 使用
+      }
     };
     app.ui.onDropSlot = (slot) => {
       if (slot < 0 || !app.net) return;
@@ -343,11 +349,11 @@ async function ensureGame() {
       const inv = app.ui.invState;
       if (!inv || !inv.items[slot]) return;
       const e = inv.items[slot];
-      // 关背包 → 锁鼠标 → 拿在手上
+      // 关背包 → 拿在手上（不锁鼠标，可点 ✕ 关闭）
       $('inv-panel').classList.add('hidden');
-      $('gl').requestPointerLock();
       app.inspect.enter(e.id, e.qty);
       app.player.inspecting = true;
+      app.player.aiming = false;
     };
   } else {
     app.player.net = app.net;
@@ -567,6 +573,18 @@ function wireGameKeys() {
     if (e.code === 'KeyM') {
       app.ui.toggleMap();
       if (app.ui.mapOpen) document.exitPointerLock && document.exitPointerLock();
+    }
+    if (e.code === 'Escape' || e.code === 'KeyX') {
+      // Esc / X 关闭背包或检视
+      if (!$('inv-panel').classList.contains('hidden')) {
+        $('inv-panel').classList.add('hidden');
+        if (app.player.state === 'ground') $('gl').requestPointerLock();
+      }
+      if (app.inspect && app.inspect.active) {
+        app.inspect.exit();
+        app.player.inspecting = false;
+      }
+      if (app.ui.mapOpen) app.ui.toggleMap(false);
     }
   });
 

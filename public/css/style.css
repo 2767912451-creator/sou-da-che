@@ -529,3 +529,15 @@ h1, h2, h3, .auth-title h1, .chapter {
 .pause-box .primary, .pause-box .ghost { display: block; width: 100%; margin: 8px 0 0; }
 .ghost.danger { color: #b83a2a; border-color: #b83a2a; }
 .pause-box .dim { margin-top: 10px; }
+
+/* ---------- 背包图标增大 ---------- */
+.inv-slot .icon { width: 30px; height: 30px; font-size: 18px; display: flex;
+  align-items: center; justify-content: center; border-radius: 5px; }
+.inv-slot .name { font-size: 11.5px; margin-top: 2px; line-height: 1.2; }
+
+/* ---------- 检视面板 z-index 修复 ---------- */
+#inspect-panel { z-index: 45; }
+#inspect-panel #inspect-close { z-index: 46; }
+
+/* ---------- Esc 提示 ---------- */
+.inv-hint b { color: var(--accent2); }

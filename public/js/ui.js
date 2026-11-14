@@ -4,6 +4,37 @@
 import { ITEMS, WEAPONS, EXTRACTORS, MAP, POIS, PLAYER } from '/shared/constants.js';
 import { APPEARANCE } from '/shared/appearance.js';
 
+const ICONS = {
+  p92: '🔫', smg: '💥', ak: '🔫', lr: '🎯', knife: '🔪',
+  a9: '🟡', a762: '🟠', a338: '🔴',
+  bandage: '🩹', medkit: '💊', energy: '🥤',
+  apple: '🍎', water: '💧', canned: '🥫', cup: '🥛', cigs: '🚬',
+  battery: '🔋', blanket: '🧸', flashlight: '🔦', radio: '📻',
+  toolbox: '🧰', milkfrog: '🐸', pillow: '🛏️',
+  armor1: '🛡️', armor2: '🛡️', armor3: '🛡️',
+  helm1: '⛑️', helm2: '⛑️', helm3: '⛑️',
+  pack1: '🎒', pack2: '🎒',
+  gold: '🪙', watch: '⌚', gpu: '💡', relic: '🔮',
+};
+
+function itemIcon(id) {
+  return ICONS[id] || '📦';
+}
+
+function itemIconColor(id) {
+  if (WEAPONS[id]) return '#2b2f36';
+  const def = ITEMS[id];
+  if (!def) return '#31435c';
+  switch (def.kind) {
+    case 'ammo': return '#3a3a20';
+    case 'med': case 'food': return '#2a3a2a';
+    case 'armor': case 'helmet': return '#2a3a4a';
+    case 'pack': return '#3a2a4a';
+    case 'loot': return '#3a3a20';
+    default: return '#31435c';
+  }
+}
+
 const $ = (id) => document.getElementById(id);
 
 export class UI {
@@ -459,7 +490,7 @@ export class UI {
         const def = ITEMS[e.id] || WEAPONS[e.id];
         const isW = !!WEAPONS[e.id];
         cell.innerHTML =
-          `<div class="icon" style="background:${isW ? '#2b2f36' : '#31435c'}">${(def.name || '?').slice(0, 2)}</div>` +
+          `<div class="icon" style="background:${itemIconColor(e.id)}; font-size:18px;">${itemIcon(e.id)}</div>` +
           `<div class="name">${def.name}${i === equipped && isW ? ' ⭐' : ''}</div>` +
           (isW && e.mag !== undefined ? `<span class="magtag">弹匣 ${e.mag}</span>` : '') +
           (e.qty > 1 ? `<span class="qty">×${e.qty}</span>` : '');
